@@ -1,0 +1,14 @@
+
+pickup_datetime,fare_amount,pickup_location,dropoff_location
+2026-11-10 08:00,120,Central,Airport
+2026-11-10 09:00,150,Airport,Central
+2026-11-10 10:00,100,Central,Station
+2026-11-10 18:00,250,Station,Central
+2026-11-10 18:30,200,Airport,Station
+2026-11-10 20:00,180,Central,Airport
+2026-11-10 08:30,130,Station,Central
+2026-11-10 19:00,220,Airport,Station
+2026-11-10 12:00,160,Central,Station
+2026-11-10 17:00,190,Station,Airport
+2026-11-10 14:00,140,Airport,Central
+2026-11-10 21:00,230,Central,Station
