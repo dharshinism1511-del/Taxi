@@ -1,0 +1,284 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taxi Demand Analytics</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f4f5f8;
+    color: #252a34;
+}
+
+header {
+    background: #20252d;
+    color: white;
+    padding: 22px;
+    text-align: center;
+}
+
+header h1 {
+    color: #ffc928;
+    margin-bottom: 8px;
+}
+
+nav {
+    background: #303844;
+    padding: 15px;
+    text-align: center;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin: 15px;
+    font-weight: bold;
+}
+
+.container {
+    padding: 25px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.welcome {
+    margin-bottom: 25px;
+}
+
+.welcome h2 {
+    margin-bottom: 8px;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.card {
+    background: white;
+    padding: 22px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px #ddd;
+}
+
+.card h3 {
+    color: #777;
+    font-size: 14px;
+}
+
+.card h2 {
+    margin-top: 15px;
+    color: #d49d00;
+    font-size: 27px;
+}
+
+.chart-box {
+    background: white;
+    padding: 22px;
+    margin-top: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px #ddd;
+}
+
+.chart-box h3 {
+    margin-bottom: 18px;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+
+footer {
+    background: #20252d;
+    color: white;
+    text-align: center;
+    padding: 18px;
+    margin-top: 30px;
+}
+
+@media(max-width: 700px) {
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    nav a {
+        margin: 5px;
+        font-size: 13px;
+    }
+}
+
+@media(max-width: 400px) {
+    .cards {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🚕 TaxiPulse</h1>
+    <p>Real-Time Taxi Demand & Mobility Analytics</p>
+</header>
+
+<nav>
+    <a href="#">Home</a>
+    <a href="#demand">Demand Analysis</a>
+    <a href="#locations">Location Analysis</a>
+</nav>
+
+<div class="container">
+
+    <section class="welcome">
+        <h2>Taxi Analytics Dashboard</h2>
+        <p>Monitor taxi trips, fares and passenger demand.</p>
+    </section>
+
+    <section class="cards">
+
+        <div class="card">
+            <h3>Total Trips</h3>
+            <h2 id="trips">--</h2>
+        </div>
+
+        <div class="card">
+            <h3>Average Fare</h3>
+            <h2 id="fare">--</h2>
+        </div>
+
+        <div class="card">
+            <h3>Total Revenue</h3>
+            <h2 id="revenue">--</h2>
+        </div>
+
+        <div class="card">
+            <h3>Peak Demand Hour</h3>
+            <h2 id="peak">--</h2>
+        </div>
+
+    </section>
+
+    <section class="chart-box" id="demand">
+        <h3>Hourly Taxi Demand</h3>
+        <div class="chart-container">
+            <canvas id="hourChart"></canvas>
+        </div>
+    </section>
+
+    <section class="chart-box" id="locations">
+        <h3>Popular Pickup Locations</h3>
+        <div class="chart-container">
+            <canvas id="pickupChart"></canvas>
+        </div>
+    </section>
+
+    <section class="chart-box">
+        <h3>Popular Drop-off Locations</h3>
+        <div class="chart-container">
+            <canvas id="dropChart"></canvas>
+        </div>
+    </section>
+
+</div>
+
+<footer>
+    <p>Taxi Demand Analytics | Data Science Mini Project</p>
+</footer>
+
+<script>
+async function loadDashboard() {
+
+    try {
+        const response = await fetch("/api/analytics");
+        const data = await response.json();
+
+        document.getElementById("trips").textContent =
+            data.total_trips.toLocaleString();
+
+        document.getElementById("fare").textContent =
+            "$" + data.avg_fare.toFixed(2);
+
+        document.getElementById("revenue").textContent =
+            "$" + data.total_revenue.toFixed(2);
+
+        document.getElementById("peak").textContent =
+            String(data.peak_hour).padStart(2, "0") + ":00";
+
+        new Chart(document.getElementById("hourChart"), {
+            type: "line",
+            data: {
+                labels: data.hour_labels,
+                datasets: [{
+                    label: "Taxi Trips",
+                    data: data.hour_values,
+                    borderColor: "#e9ae00",
+                    backgroundColor: "rgba(255,201,40,0.2)",
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        new Chart(document.getElementById("pickupChart"), {
+            type: "bar",
+            data: {
+                labels: data.pickup_labels,
+                datasets: [{
+                    label: "Pickup Trips",
+                    data: data.pickup_values,
+                    backgroundColor: "#ffc928"
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: "y"
+            }
+        });
+
+        new Chart(document.getElementById("dropChart"), {
+            type: "doughnut",
+            data: {
+                labels: data.dropoff_labels,
+                datasets: [{
+                    data: data.dropoff_values,
+                    backgroundColor: [
+                        "#ffc928", "#303844",
+                        "#f4a340", "#8b96a5",
+                        "#e8c85b", "#c6ccd4"
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+    } catch (error) {
+        console.error("Dashboard loading error:", error);
+    }
+}
+
+loadDashboard();
+</script>
+
+</body>
+</html>
